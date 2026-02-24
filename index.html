@@ -1,674 +1,990 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CourtBook — Indoor Sports Scheduling</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CourtBook — Indoor Sports Scheduling</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  :root {
-    --grad-start: #D6D0D5;
-    --grad-end: #EF4823;
-    --accent: #EF4823;
-    --accent-light: #fff0eb;
-    --available: #16a34a;
-    --available-bg: #f0fdf4;
-    --booked: #dc2626;
-    --booked-bg: #fef2f2;
-    --white: #ffffff;
-    --border: #e5e5e5;
-    --text: #1a1a1a;
-    --muted: #737373;
-    --surface: #fafafa;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-    --radius: 10px;
-    --font: 'DM Sans', sans-serif;
-    --mono: 'DM Mono', monospace;
-  }
+    :root {
+      --grad-start: #D6D0D5;
+      --grad-end: #EF4823;
+      --accent: #EF4823;
+      --accent-light: #fff0eb;
+      --available: #737373;
+      --available-bg: #ffffff;
+      --booked: #ef4444;
+      --booked-bg: #fee2e2;
+      --white: #ffffff;
+      --border: #e5e5e5;
+      --text: #1a1a1a;
+      --muted: #737373;
+      --surface: #fafafa;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+      --radius: 10px;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
 
-  body {
-    font-family: var(--font);
-    background: var(--surface);
-    color: var(--text);
-    min-height: 100vh;
-  }
+    body {
+      font-family: var(--font);
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-  /* HEADER */
-  header {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    padding: 0 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 3px solid var(--accent);
-  }
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo-mark {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo-mark svg { width: 18px; height: 18px; fill: white; }
-  .logo-text { font-size: 1.1rem; font-weight: 700; color: white; letter-spacing: -0.02em; }
-  .logo-text span { color: var(--accent); }
-  .header-date { font-size: 0.8rem; color: #a3a3a3; font-family: var(--mono); }
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--accent);
+    }
 
-  /* MAIN LAYOUT */
-  .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
 
-  /* SECTION TITLES */
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.25rem;
-  }
-  .section-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .section-title::before {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 16px;
-    background: linear-gradient(to bottom, var(--grad-start), var(--grad-end));
-    border-radius: 2px;
-  }
-  .count-badge {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
-    background: var(--accent-light);
-    color: var(--accent);
-    font-family: var(--mono);
-  }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-  /* COURTS GRID */
-  .courts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2.5rem;
-  }
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-  .court-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.2s, transform 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .court-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--grad-start), var(--grad-end));
-  }
-  .court-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .logo-mark svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
 
-  .court-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-  }
-  .court-name { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-  .court-sport { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .logo-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.02em;
+    }
 
-  .status-badge {
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-  .status-badge.available { background: var(--available-bg); color: var(--available); border: 1px solid #bbf7d0; }
-  .status-badge.booked { background: var(--booked-bg); color: var(--booked); border: 1px solid #fecaca; }
+    .logo-text span {
+      color: var(--accent);
+    }
 
-  .court-slots { margin-top: 0.75rem; }
-  .slot-label { font-size: 0.72rem; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
-  .slot-list { display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; }
-  .slot-item {
-    font-size: 0.68rem;
-    font-family: var(--mono);
-    padding: 2px 7px;
-    border-radius: 4px;
-    background: var(--booked-bg);
-    color: var(--booked);
-    border: 1px solid #fecaca;
-  }
-  .no-slots { font-size: 0.72rem; color: #a3a3a3; font-style: italic; }
+    .header-date {
+      font-size: 0.8rem;
+      color: #a3a3a3;
+      font-family: var(--mono);
+    }
 
-  .court-rate {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 0.75rem;
-    padding: 7px 10px;
-    background: var(--accent-light);
-    border-radius: 6px;
-    border: 1px solid #ffd5c7;
-  }
-  .court-rate-label { font-size: 0.72rem; color: var(--accent); font-weight: 500; }
-  .court-rate-value { font-size: 0.82rem; font-weight: 700; color: var(--accent); font-family: var(--mono); }
+    /* MAIN LAYOUT */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
 
-  .cost-preview {
-    margin-top: 1rem;
-    padding: 10px 14px;
-    background: var(--accent-light);
-    border: 1px solid #ffd5c7;
-    border-radius: 7px;
-    display: none;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .cost-preview.show { display: flex; }
-  .cost-preview-label { font-size: 0.78rem; color: var(--accent); font-weight: 500; }
-  .cost-preview-value { font-size: 1rem; font-weight: 700; color: var(--accent); font-family: var(--mono); }
-  .cost-preview-sub { font-size: 0.7rem; color: #b34a28; margin-top: 1px; }
+    /* SECTION TITLES */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
 
-  .book-btn {
-    margin-top: 1rem;
-    width: 100%;
-    padding: 8px;
-    border: none;
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
-    color: white;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: var(--font);
-    cursor: pointer;
-    letter-spacing: 0.01em;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-  .book-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-  .book-btn:active { transform: translateY(0); }
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  /* BOOKING FORM */
-  .form-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-  }
-  @media (max-width: 768px) { .form-section { grid-template-columns: 1fr; } .courts-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 480px) { .courts-grid { grid-template-columns: 1fr; } }
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 16px;
+      background: linear-gradient(to bottom, var(--grad-start), var(--grad-end));
+      border-radius: 2px;
+    }
 
-  .form-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-  }
+    .count-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-family: var(--mono);
+    }
 
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: span 2; }
+    /* COURTS GRID */
+    .courts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
 
-  label { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .court-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
 
-  input, select {
-    padding: 9px 12px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    font-size: 0.85rem;
-    font-family: var(--font);
-    color: var(--text);
-    background: var(--white);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  input:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(239,72,35,0.1);
-  }
+    .court-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--grad-start), var(--grad-end));
+    }
 
-  .select-wrap { position: relative; }
-  .select-wrap::after {
-    content: '';
-    position: absolute;
-    right: 12px; top: 50%;
-    transform: translateY(-50%);
-    width: 0; height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid var(--muted);
-    pointer-events: none;
-  }
+    .court-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
 
-  .form-actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; }
+    .court-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
 
-  .btn-primary {
-    flex: 1;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 7px;
-    background: linear-gradient(135deg, #EF4823, #c73a1a);
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    letter-spacing: 0.01em;
-  }
-  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .court-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+    }
 
-  .btn-secondary {
-    padding: 10px 16px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: var(--white);
-    color: var(--muted);
-    font-size: 0.85rem;
-    font-weight: 500;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .court-sport {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
 
-  /* ALERT */
-  .alert {
-    padding: 10px 14px;
-    border-radius: 7px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    margin-bottom: 1rem;
-    display: none;
-    align-items: center;
-    gap: 8px;
-  }
-  .alert.show { display: flex; }
-  .alert.success { background: var(--available-bg); color: var(--available); border: 1px solid #bbf7d0; }
-  .alert.error { background: var(--booked-bg); color: var(--booked); border: 1px solid #fecaca; }
-  .alert-icon { font-size: 1rem; flex-shrink: 0; }
+    .status-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
 
-  /* INFO CARD (right side of form section) */
-  .info-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  .info-card-title { font-size: 0.85rem; font-weight: 600; color: #a3a3a3; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
-  .stat-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #333; }
-  .stat-row:last-of-type { border-bottom: none; }
-  .stat-label { font-size: 0.8rem; color: #a3a3a3; }
-  .stat-value { font-size: 0.9rem; font-weight: 700; font-family: var(--mono); }
-  .stat-value.green { color: #4ade80; }
-  .stat-value.red { color: #f87171; }
-  .stat-value.orange { color: var(--accent); }
-  .booking-instructions { font-size: 0.75rem; color: #6b6b6b; line-height: 1.5; margin-top: 1rem; }
+    .status-badge.available {
+      background: #f5f5f5;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
 
-  /* BOOKINGS TABLE */
-  .table-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 2rem;
-  }
-  .table-header {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  table { width: 100%; border-collapse: collapse; }
-  thead th {
-    padding: 10px 1.25rem;
-    text-align: left;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr { transition: background 0.1s; }
-  tbody tr:hover { background: var(--surface); }
-  tbody tr + tr { border-top: 1px solid var(--border); }
-  tbody td { padding: 11px 1.25rem; font-size: 0.82rem; color: var(--text); }
-  td.mono { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+    .status-badge.booked {
+      background: var(--booked-bg);
+      color: var(--booked);
+      border: 1px solid #fecaca;
+    }
 
-  .del-btn {
-    padding: 4px 10px;
-    border: 1px solid #fecaca;
-    border-radius: 5px;
-    background: var(--booked-bg);
-    color: var(--booked);
-    font-size: 0.72rem;
-    font-weight: 600;
-    font-family: var(--font);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .del-btn:hover { background: #fee2e2; }
+    .court-slots {
+      margin-top: 0.75rem;
+    }
 
-  .empty-state {
-    text-align: center;
-    padding: 2.5rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
-  .empty-state-icon { font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.4; }
+    .slot-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
 
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 1.25rem 2rem;
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--muted);
-    background: var(--white);
-    margin-top: 1rem;
-  }
+    .slot-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-height: 24px;
+    }
 
-  /* Responsive table scroll */
-  .table-scroll { overflow-x: auto; }
-</style>
+    .slot-item {
+      font-size: 0.68rem;
+      font-family: var(--mono);
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--booked-bg);
+      color: var(--booked);
+      border: 1px solid #fecaca;
+    }
+
+    .no-slots {
+      font-size: 0.72rem;
+      color: #a3a3a3;
+      font-style: italic;
+    }
+
+    .court-rate {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+      padding: 7px 10px;
+      background: var(--accent-light);
+      border-radius: 6px;
+      border: 1px solid #ffd5c7;
+    }
+
+    .court-rate-label {
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .court-rate-value {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    .cost-preview {
+      margin-top: 1rem;
+      padding: 10px 14px;
+      background: var(--accent-light);
+      border: 1px solid #ffd5c7;
+      border-radius: 7px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cost-preview.show {
+      display: flex;
+    }
+
+    .cost-preview-label {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .cost-preview-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    .cost-preview-sub {
+      font-size: 0.7rem;
+      color: #b34a28;
+      margin-top: 1px;
+    }
+
+    .book-btn {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .book-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .book-btn:active {
+      transform: translateY(0);
+    }
+
+    /* BOOKING FORM */
+    .form-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .form-section {
+        grid-template-columns: 1fr;
+      }
+
+      .courts-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .courts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(239, 72, 35, 0.1);
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--muted);
+      pointer-events: none;
+    }
+
+    .form-actions {
+      margin-top: 1.25rem;
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #EF4823, #c73a1a);
+      color: white;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--white);
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ALERT */
+    .alert {
+      padding: 10px 14px;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert.show {
+      display: flex;
+    }
+
+    .alert.success {
+      background: var(--available-bg);
+      color: var(--available);
+      border: 1px solid #bbf7d0;
+    }
+
+    .alert.error {
+      background: var(--booked-bg);
+      color: var(--booked);
+      border: 1px solid #fecaca;
+    }
+
+    .alert-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* INFO CARD (right side of form section) */
+    .info-card {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .info-card-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #a3a3a3;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .stat-row:last-of-type {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #a3a3a3;
+    }
+
+    .stat-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+
+    .stat-value.green {
+      color: #ef4444;
+    }
+
+    .stat-value.red {
+      color: #f87171;
+    }
+
+    .stat-value.orange {
+      color: var(--accent);
+    }
+
+    .booking-instructions {
+      font-size: 0.75rem;
+      color: #6b6b6b;
+      line-height: 1.5;
+      margin-top: 1rem;
+    }
+
+    /* BOOKINGS TABLE */
+    .table-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .table-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      padding: 10px 1.25rem;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      transition: background 0.1s;
+    }
+
+    tbody tr:hover {
+      background: var(--surface);
+    }
+
+    tbody tr+tr {
+      border-top: 1px solid var(--border);
+    }
+
+    tbody td {
+      padding: 11px 1.25rem;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+
+    td.mono {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .del-btn {
+      padding: 4px 10px;
+      border: 1px solid #fecaca;
+      border-radius: 5px;
+      background: var(--booked-bg);
+      color: var(--booked);
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .del-btn:hover {
+      background: #fee2e2;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.4;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      background: var(--white);
+      margin-top: 1rem;
+    }
+
+    /* Responsive table scroll */
+    .table-scroll {
+      overflow-x: auto;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6l5 3-1 1.73-6-3.73V7z"/></svg>
-      </div>
-      <span class="logo-text">Court<span>Book</span></span>
-    </div>
-    <span class="header-date" id="headerDate"></span>
-  </div>
-</header>
-
-<div class="container">
-
-  <!-- COURTS -->
-  <div class="section-header">
-    <div class="section-title">Courts Overview</div>
-    <span class="count-badge" id="availCount"></span>
-  </div>
-  <div class="courts-grid" id="courtsGrid"></div>
-
-  <!-- FORM + STATS -->
-  <div class="form-section">
-    <div class="form-card">
-      <div class="section-title" style="margin-bottom:1.25rem">Book a Court</div>
-      <div id="alert" class="alert"><span class="alert-icon" id="alertIcon"></span><span id="alertMsg"></span></div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label for="playerName">Player Name</label>
-          <input type="text" id="playerName" placeholder="Enter your full name">
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6l5 3-1 1.73-6-3.73V7z" />
+          </svg>
         </div>
-        <div class="form-group full">
-          <label for="courtSelect">Select Court</label>
-          <div class="select-wrap">
-            <select id="courtSelect"></select>
+        <span class="logo-text">Court<span>Book</span></span>
+      </div>
+      <span class="header-date" id="headerDate"></span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- COURTS -->
+    <div class="section-header">
+      <div class="section-title">Courts Overview</div>
+      <span class="count-badge" id="availCount"></span>
+    </div>
+    <div class="courts-grid" id="courtsGrid"></div>
+
+    <!-- FORM + STATS -->
+    <div class="form-section">
+      <div class="form-card">
+        <div class="section-title" style="margin-bottom:1.25rem">Book a Court</div>
+        <div id="alert" class="alert"><span class="alert-icon" id="alertIcon"></span><span id="alertMsg"></span></div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="playerName">Player Name</label>
+            <input type="text" id="playerName" placeholder="Enter your full name">
+          </div>
+          <div class="form-group full">
+            <label for="courtSelect">Select Court</label>
+            <div class="select-wrap">
+              <select id="courtSelect"></select>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label for="bookDate">Date</label>
+            <input type="date" id="bookDate">
+          </div>
+          <div class="form-group">
+            <label for="startTime">Start Time</label>
+            <div class="select-wrap">
+              <select id="startTime"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="endTime">End Time</label>
+            <div class="select-wrap">
+              <select id="endTime"></select>
+            </div>
           </div>
         </div>
-        <div class="form-group full">
-          <label for="bookDate">Date</label>
-          <input type="date" id="bookDate">
+        <div class="cost-preview" id="costPreview">
+          <div>
+            <div class="cost-preview-label">Estimated Cost</div>
+            <div class="cost-preview-sub" id="costBreakdown"></div>
+          </div>
+          <div class="cost-preview-value" id="costValue"></div>
         </div>
-        <div class="form-group">
-          <label for="startTime">Start Time</label>
-          <input type="time" id="startTime">
-        </div>
-        <div class="form-group">
-          <label for="endTime">End Time</label>
-          <input type="time" id="endTime">
+        <div class="form-actions">
+          <button class="btn-primary" onclick="addBooking()">Confirm Booking</button>
+          <button class="btn-secondary" onclick="resetForm()">Clear</button>
         </div>
       </div>
-      <div class="cost-preview" id="costPreview">
+
+      <div class="info-card">
         <div>
-          <div class="cost-preview-label">Estimated Cost</div>
-          <div class="cost-preview-sub" id="costBreakdown"></div>
+          <div class="info-card-title">Live Summary</div>
+          <div class="stat-row"><span class="stat-label">Total Courts</span><span class="stat-value orange"
+              id="statTotal"></span></div>
+          <div class="stat-row"><span class="stat-label">Available Now</span><span class="stat-value green"
+              id="statAvail"></span></div>
+          <div class="stat-row"><span class="stat-label">Booked</span><span class="stat-value red"
+              id="statBooked"></span></div>
+          <div class="stat-row"><span class="stat-label">Total Bookings Today</span><span class="stat-value orange"
+              id="statToday"></span></div>
+          <div class="stat-row"><span class="stat-label">Revenue Today (Est.)</span><span class="stat-value green"
+              id="statRevenue"></span></div>
         </div>
-        <div class="cost-preview-value" id="costValue"></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-primary" onclick="addBooking()">Confirm Booking</button>
-        <button class="btn-secondary" onclick="resetForm()">Clear</button>
+        <p class="booking-instructions">Select a court, date, and a valid time range to make a booking. Overlapping
+          bookings for the same court on the same date are not allowed. Click "Book" on any court card to auto-fill the
+          selection.</p>
       </div>
     </div>
 
-    <div class="info-card">
-      <div>
-        <div class="info-card-title">Live Summary</div>
-        <div class="stat-row"><span class="stat-label">Total Courts</span><span class="stat-value orange" id="statTotal"></span></div>
-        <div class="stat-row"><span class="stat-label">Available Now</span><span class="stat-value green" id="statAvail"></span></div>
-        <div class="stat-row"><span class="stat-label">Booked</span><span class="stat-value red" id="statBooked"></span></div>
-        <div class="stat-row"><span class="stat-label">Total Bookings Today</span><span class="stat-value orange" id="statToday"></span></div>
-        <div class="stat-row"><span class="stat-label">Revenue Today (Est.)</span><span class="stat-value green" id="statRevenue"></span></div>
-      </div>
-      <p class="booking-instructions">Select a court, date, and a valid time range to make a booking. Overlapping bookings for the same court on the same date are not allowed. Click "Book" on any court card to auto-fill the selection.</p>
+    <!-- BOOKINGS TABLE -->
+    <div class="section-header">
+      <div class="section-title">All Bookings</div>
+      <span class="count-badge" id="bookingCount"></span>
     </div>
-  </div>
-
-  <!-- BOOKINGS TABLE -->
-  <div class="section-header">
-    <div class="section-title">All Bookings</div>
-    <span class="count-badge" id="bookingCount"></span>
-  </div>
-  <div class="table-card">
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr>
-            <th>Court</th>
-            <th>Sport</th>
-            <th>Player</th>
-            <th>Date</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Duration</th>
-            <th>Amount</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="bookingTable"></tbody>
-      </table>
-      <div class="empty-state" id="emptyState">
-        <div class="empty-state-icon">&#9632;</div>
-        <div>No bookings yet. Use the form above to get started.</div>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Court</th>
+              <th>Sport</th>
+              <th>Player</th>
+              <th>Date</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Duration</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bookingTable"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState">
+          <div class="empty-state-icon">&#9632;</div>
+          <div>No bookings yet. Use the form above to get started.</div>
+        </div>
       </div>
     </div>
+
   </div>
 
-</div>
+  <footer>CourtBook — Indoor Sports Scheduling System &nbsp;&bull;&nbsp; All bookings are session-based and reset on
+    page reload.</footer>
 
-<footer>CourtBook — Indoor Sports Scheduling System &nbsp;&bull;&nbsp; All bookings are session-based and reset on page reload.</footer>
+  <script>
+    const courts = [
+      { id: 1, name: 'Court A', sport: 'Badminton', rate: 200 },
+      { id: 2, name: 'Court B', sport: 'Badminton', rate: 220 },
+      { id: 3, name: 'Court C', sport: 'Basketball', rate: 450 },
+      { id: 4, name: 'Court D', sport: 'Squash', rate: 350 },
+      { id: 5, name: 'Court E', sport: 'Table Tennis', rate: 250 },
+      { id: 6, name: 'Court F', sport: 'Volleyball', rate: 300 }
+    ];
 
-<script>
-const courts = [
-  { id: 1, name: 'Court A', sport: 'Badminton',    rate: 200 },
-  { id: 2, name: 'Court B', sport: 'Badminton',    rate: 220 },
-  { id: 3, name: 'Court C', sport: 'Basketball',   rate: 450 },
-  { id: 4, name: 'Court D', sport: 'Squash',       rate: 350 },
-  { id: 5, name: 'Court E', sport: 'Table Tennis', rate: 250 },
-  { id: 6, name: 'Court F', sport: 'Volleyball',   rate: 300 }
-];
+    // Generate 1-hour slots from 5am to 9pm
+    function generateSlots() {
+      const slots = [];
+      for (let h = 5; h < 21; h++) {
+        const start = h.toString().padStart(2, '0') + ':00';
+        const end = (h + 1).toString().padStart(2, '0') + ':00';
+        slots.push({ start, end });
+      }
+      return slots;
+    }
 
-// Generate 1-hour slots from 5am to 9pm
-function generateSlots() {
-  const slots = [];
-  for (let h = 5; h < 21; h++) {
-    const start = h.toString().padStart(2, '0') + ':00';
-    const end = (h + 1).toString().padStart(2, '0') + ':00';
-    slots.push({ start, end });
-  }
-  return slots;
-}
+    function getAvailableSlots(courtId, date) {
+      const allSlots = generateSlots();
+      const booked = getCourtBookings(courtId, date);
+      return allSlots.filter(slot => !booked.some(b => isOverlap(slot.start, slot.end, b.start, b.end)));
+    }
 
-function getAvailableSlots(courtId, date) {
-  const allSlots = generateSlots();
-  const booked = getCourtBookings(courtId, date);
-  return allSlots.filter(slot => !booked.some(b => isOverlap(slot.start, slot.end, b.start, b.end)));
-}
+    let bookings = [];
 
-let bookings = [];
+    // Init date
+    const today = new Date();
+    document.getElementById('headerDate').textContent = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('bookDate').value = today.toISOString().split('T')[0];
+    document.getElementById('bookDate').min = today.toISOString().split('T')[0];
 
-// Init date
-const today = new Date();
-document.getElementById('headerDate').textContent = today.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-document.getElementById('bookDate').value = today.toISOString().split('T')[0];
-document.getElementById('bookDate').min = today.toISOString().split('T')[0];
+    // Populate court select
+    const sel = document.getElementById('courtSelect');
+    courts.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.name} — ${c.sport} (Rs. ${c.rate}/hr)`; sel.appendChild(o); });
 
-// Populate court select
-const sel = document.getElementById('courtSelect');
-courts.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.name} — ${c.sport} (Rs. ${c.rate}/hr)`; sel.appendChild(o); });
+    // Populate time dropdowns
+    function populateTimeDropdowns() {
+      const startSel = document.getElementById('startTime');
+      const endSel = document.getElementById('endTime');
 
-function calcCost(courtId, start, end) {
-  const court = courts.find(c => c.id == courtId);
-  if (!court || !start || !end || start >= end) return 0;
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  const mins = eh * 60 + em - sh * 60 - sm;
-  return Math.ceil((mins / 60) * court.rate);
-}
+      startSel.innerHTML = '<option value="" disabled selected>Start</option>';
+      endSel.innerHTML = '<option value="" disabled selected>End</option>';
 
-function updateCostPreview() {
-  const courtId = parseInt(document.getElementById('courtSelect').value);
-  const start = document.getElementById('startTime').value;
-  const end = document.getElementById('endTime').value;
-  const court = courts.find(c => c.id === courtId);
-  const preview = document.getElementById('costPreview');
-  if (!start || !end || start >= end || !court) { preview.classList.remove('show'); return; }
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  const mins = eh * 60 + em - sh * 60 - sm;
-  const cost = calcCost(courtId, start, end);
-  document.getElementById('costValue').textContent = `Rs. ${cost}`;
-  document.getElementById('costBreakdown').textContent = `${(mins/60).toFixed(1)} hr x Rs. ${court.rate}/hr`;
-  preview.classList.add('show');
-}
+      for (let h = 5; h <= 21; h++) {
+        const time = h.toString().padStart(2, '0') + ':00';
+        const opt = document.createElement('option');
+        opt.value = time;
+        opt.textContent = time;
+        startSel.appendChild(opt);
+      }
 
-['courtSelect','startTime','endTime'].forEach(id => document.getElementById(id).addEventListener('change', updateCostPreview));
+      for (let h = 6; h <= 22; h++) {
+        const time = h.toString().padStart(2, '0') + ':00';
+        const opt = document.createElement('option');
+        opt.value = time;
+        opt.textContent = time;
+        endSel.appendChild(opt);
+      }
+    }
+    populateTimeDropdowns();
 
-function getCourtBookings(courtId, date) {
-  return bookings.filter(b => b.courtId == courtId && b.date === date);
-}
+    document.getElementById('startTime').addEventListener('change', (e) => {
+      const [h, m] = e.target.value.split(':').map(Number);
+      const endH = h + 1;
+      const endStr = endH.toString().padStart(2, '0') + ':00';
+      document.getElementById('endTime').value = endStr;
+      updateCostPreview();
+    });
 
-function isOverlap(s1, e1, s2, e2) {
-  return s1 < e2 && e1 > s2;
-}
+    function calcCost(courtId, start, end) {
+      const court = courts.find(c => c.id == courtId);
+      if (!court || !start || !end || start >= end) return 0;
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      const mins = eh * 60 + em - sh * 60 - sm;
+      return Math.ceil((mins / 60) * court.rate);
+    }
 
-function courtStatus(courtId) {
-  const todayStr = today.toISOString().split('T')[0];
-  const now = today.getHours() * 60 + today.getMinutes();
-  return getCourtBookings(courtId, todayStr).some(b => {
-    const [sh, sm] = b.start.split(':').map(Number);
-    const [eh, em] = b.end.split(':').map(Number);
-    return now >= sh * 60 + sm && now < eh * 60 + em;
-  });
-}
+    function updateCostPreview() {
+      const courtId = parseInt(document.getElementById('courtSelect').value);
+      const start = document.getElementById('startTime').value;
+      const end = document.getElementById('endTime').value;
+      const court = courts.find(c => c.id === courtId);
+      const preview = document.getElementById('costPreview');
+      if (!start || !end || start >= end || !court) { preview.classList.remove('show'); return; }
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      const mins = eh * 60 + em - sh * 60 - sm;
+      const cost = calcCost(courtId, start, end);
+      document.getElementById('costValue').textContent = `Rs. ${cost}`;
+      document.getElementById('costBreakdown').textContent = `${(mins / 60).toFixed(1)} hr x Rs. ${court.rate}/hr`;
+      preview.classList.add('show');
+    }
 
-function renderCourts() {
-  const grid = document.getElementById('courtsGrid');
-  const todayStr = today.toISOString().split('T')[0];
-  grid.innerHTML = courts.map(c => {
-    const busy = courtStatus(c.id);
-    const slots = getCourtBookings(c.id, todayStr);
-    const slotHTML = slots.length
-      ? slots.map(b => `<span class="slot-item booked">${b.start}–${b.end}</span>`).join('')
-      : `<span class="no-slots">No bookings today</span>`;
-    // Show available slots
-    const availableSlots = getAvailableSlots(c.id, todayStr);
-    const availableHTML = availableSlots.length
-      ? availableSlots.map(s => `<span class="slot-item available">${s.start}–${s.end}</span>`).join('')
-      : `<span class="no-slots">No available slots</span>`;
-    return `<div class="court-card">
+    ['courtSelect', 'startTime', 'endTime'].forEach(id => document.getElementById(id).addEventListener('change', updateCostPreview));
+
+    function getCourtBookings(courtId, date) {
+      return bookings.filter(b => b.courtId == courtId && b.date === date);
+    }
+
+    function isOverlap(s1, e1, s2, e2) {
+      return s1 < e2 && e1 > s2;
+    }
+
+    function courtStatus(courtId) {
+      const todayStr = today.toISOString().split('T')[0];
+      const now = today.getHours() * 60 + today.getMinutes();
+      return getCourtBookings(courtId, todayStr).some(b => {
+        const [sh, sm] = b.start.split(':').map(Number);
+        const [eh, em] = b.end.split(':').map(Number);
+        return now >= sh * 60 + sm && now < eh * 60 + em;
+      });
+    }
+
+    function renderCourts() {
+      const grid = document.getElementById('courtsGrid');
+      const todayStr = today.toISOString().split('T')[0];
+      const allPossibleSlots = generateSlots();
+
+      grid.innerHTML = courts.map(c => {
+        const busyNow = courtStatus(c.id);
+        const courtBookings = getCourtBookings(c.id, todayStr);
+
+        const slotsHTML = allPossibleSlots.map(slot => {
+          const isBooked = courtBookings.some(b => isOverlap(slot.start, slot.end, b.start, b.end));
+          const style = isBooked
+            ? `background:var(--booked-bg);color:var(--booked);border:1px solid #fecaca`
+            : `background:var(--white);color:var(--muted);border:1px solid var(--border)`;
+          return `<span class="slot-item ${isBooked ? 'booked' : 'available'}" style="${style}">${slot.start}</span>`;
+        }).join('');
+
+        return `<div class="court-card">
       <div class="court-card-top">
         <div><div class="court-name">${c.name}</div><div class="court-sport">${c.sport}</div></div>
-        <span class="status-badge ${busy ? 'booked' : 'available'}">${busy ? 'Booked' : 'Available'}</span>
+        <span class="status-badge ${busyNow ? 'booked' : 'available'}">${busyNow ? 'Booked' : 'Available'}</span>
       </div>
       <div class="court-rate">
         <span class="court-rate-label">Hourly Rate</span>
         <span class="court-rate-value">Rs. ${c.rate} / hr</span>
       </div>
       <div class="court-slots">
-        <div class="slot-label">Today's Bookings</div>
-        <div class="slot-list">${slotHTML}</div>
-        <div class="slot-label" style="margin-top:8px;color:var(--available);">Available Slots</div>
-        <div class="slot-list">${availableHTML}</div>
+        <div class="slot-label">Daily Schedule</div>
+        <div class="slot-list">${slotsHTML}</div>
       </div>
       <button class="book-btn" onclick="prefill(${c.id})">Book This Court</button>
     </div>`;
-  }).join('');
-  renderStats();
-}
+      }).join('');
+      renderStats();
+    }
 
-function renderStats() {
-  const todayStr = today.toISOString().split('T')[0];
-  const busyCount = courts.filter(c => courtStatus(c.id)).length;
-  document.getElementById('statTotal').textContent = courts.length;
-  // Count available slots for all courts
-  let totalAvailableSlots = 0;
-  courts.forEach(c => {
-    totalAvailableSlots += getAvailableSlots(c.id, todayStr).length;
-  });
-  document.getElementById('statAvail').textContent = totalAvailableSlots;
-  document.getElementById('statBooked').textContent = bookings.filter(b => b.date === todayStr).length;
-  document.getElementById('statToday').textContent = bookings.filter(b => b.date === todayStr).length;
-  const revenue = bookings.filter(b => b.date === todayStr).reduce((s, b) => s + (b.cost || 0), 0);
-  document.getElementById('statRevenue').textContent = `Rs. ${revenue}`;
-  document.getElementById('availCount').textContent = `${totalAvailableSlots} available slots today`;
-}
+    function renderStats() {
+      const todayStr = today.toISOString().split('T')[0];
+      const busyCount = courts.filter(c => courtStatus(c.id)).length;
+      document.getElementById('statTotal').textContent = courts.length;
+      // Count available slots for all courts
+      let totalAvailableSlots = 0;
+      courts.forEach(c => {
+        totalAvailableSlots += getAvailableSlots(c.id, todayStr).length;
+      });
+      document.getElementById('statAvail').textContent = totalAvailableSlots;
+      document.getElementById('statBooked').textContent = bookings.filter(b => b.date === todayStr).length;
+      document.getElementById('statToday').textContent = bookings.filter(b => b.date === todayStr).length;
+      const revenue = bookings.filter(b => b.date === todayStr).reduce((s, b) => s + (b.cost || 0), 0);
+      document.getElementById('statRevenue').textContent = `Rs. ${revenue}`;
+      document.getElementById('availCount').textContent = `${totalAvailableSlots} available slots today`;
+    }
 
-function renderTable() {
-  const tbody = document.getElementById('bookingTable');
-  document.getElementById('emptyState').style.display = bookings.length ? 'none' : 'block';
-  document.getElementById('bookingCount').textContent = `${bookings.length} total`;
-  tbody.innerHTML = bookings.map((b, i) => {
-    const [sh, sm] = b.start.split(':').map(Number);
-    const [eh, em] = b.end.split(':').map(Number);
-    const dur = eh * 60 + em - sh * 60 - sm;
-    return `<tr>
+    function renderTable() {
+      const tbody = document.getElementById('bookingTable');
+      document.getElementById('emptyState').style.display = bookings.length ? 'none' : 'block';
+      document.getElementById('bookingCount').textContent = `${bookings.length} total`;
+      tbody.innerHTML = bookings.map((b, i) => {
+        const [sh, sm] = b.start.split(':').map(Number);
+        const [eh, em] = b.end.split(':').map(Number);
+        const dur = eh * 60 + em - sh * 60 - sm;
+        return `<tr>
       <td><strong>${b.courtName}</strong></td>
       <td>${b.sport}</td>
       <td>${b.player}</td>
@@ -679,60 +995,62 @@ function renderTable() {
       <td class="mono" style="color:var(--accent);font-weight:600">Rs. ${b.cost}</td>
       <td><button class="del-btn" onclick="deleteBooking(${i})">Cancel</button></td>
     </tr>`;
-  }).join('');
-}
+      }).join('');
+    }
 
-function showAlert(type, msg) {
-  const el = document.getElementById('alert');
-  el.className = `alert show ${type}`;
-  document.getElementById('alertIcon').textContent = type === 'success' ? '✓' : '✗';
-  document.getElementById('alertMsg').textContent = msg;
-  setTimeout(() => el.classList.remove('show'), 3500);
-}
+    function showAlert(type, msg) {
+      const el = document.getElementById('alert');
+      el.className = `alert show ${type}`;
+      document.getElementById('alertIcon').textContent = type === 'success' ? '✓' : '✗';
+      document.getElementById('alertMsg').textContent = msg;
+      setTimeout(() => el.classList.remove('show'), 3500);
+    }
 
-function addBooking() {
-  const player = document.getElementById('playerName').value.trim();
-  const courtId = parseInt(document.getElementById('courtSelect').value);
-  const date = document.getElementById('bookDate').value;
-  const start = document.getElementById('startTime').value;
-  const end = document.getElementById('endTime').value;
+    function addBooking() {
+      const player = document.getElementById('playerName').value.trim();
+      const courtId = parseInt(document.getElementById('courtSelect').value);
+      const date = document.getElementById('bookDate').value;
+      const start = document.getElementById('startTime').value;
+      const end = document.getElementById('endTime').value;
 
-  if (!player || !date || !start || !end) return showAlert('error', 'Please fill in all fields.');
-  if (start >= end) return showAlert('error', 'End time must be after start time.');
+      if (!player || !date || !start || !end) return showAlert('error', 'Please fill in all fields.');
+      if (start >= end) return showAlert('error', 'End time must be after start time.');
 
-  const conflict = getCourtBookings(courtId, date).some(b => isOverlap(start, end, b.start, b.end));
-  if (conflict) return showAlert('error', 'This court is already booked during that time. Please choose another slot.');
+      // Check for overlaps using isOverlap
+      const conflict = getCourtBookings(courtId, date).find(b => isOverlap(start, end, b.start, b.end));
+      if (conflict) return showAlert('error', `Time conflict! This court is already booked from ${conflict.start} to ${conflict.end}.`);
 
-  const court = courts.find(c => c.id === courtId);
-  const cost = calcCost(courtId, start, end);
-  bookings.push({ courtId, courtName: court.name, sport: court.sport, player, date, start, end, cost });
-  showAlert('success', `Court ${court.name} booked for ${player} on ${date} from ${start} to ${end}. Total: Rs. ${cost}.`);
-  resetForm();
-  renderCourts();
-  renderTable();
-}
+      const court = courts.find(c => c.id === courtId);
+      const cost = calcCost(courtId, start, end);
+      bookings.push({ courtId, courtName: court.name, sport: court.sport, player, date, start, end, cost });
+      showAlert('success', `Court ${court.name} booked for ${player} on ${date} from ${start} to ${end}. Total: Rs. ${cost}.`);
+      resetForm();
+      renderCourts();
+      renderTable();
+    }
 
-function deleteBooking(i) {
-  bookings.splice(i, 1);
-  renderCourts();
-  renderTable();
-}
+    function deleteBooking(i) {
+      bookings.splice(i, 1);
+      renderCourts();
+      renderTable();
+    }
 
-function prefill(courtId) {
-  document.getElementById('courtSelect').value = courtId;
-  document.getElementById('playerName').focus();
-}
+    function prefill(courtId) {
+      document.getElementById('courtSelect').value = courtId;
+      document.getElementById('playerName').focus();
+    }
 
-function resetForm() {
-  document.getElementById('playerName').value = '';
-  document.getElementById('startTime').value = '';
-  document.getElementById('endTime').value = '';
-  document.getElementById('bookDate').value = today.toISOString().split('T')[0];
-  document.getElementById('costPreview').classList.remove('show');
-}
+    function resetForm() {
+      document.getElementById('playerName').value = '';
+      document.getElementById('startTime').value = '';
+      document.getElementById('endTime').value = '';
+      document.getElementById('bookDate').value = today.toISOString().split('T')[0];
+      document.getElementById('costPreview').classList.remove('show');
+    }
 
-renderCourts();
-renderTable();
-</script>
+    renderCourts();
+    renderTable();
+  </script>
 </body>
+
 </html>
