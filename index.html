@@ -534,6 +534,23 @@ const courts = [
   { id: 6, name: 'Court F', sport: 'Volleyball',   rate: 300 }
 ];
 
+// Generate 1-hour slots from 5am to 9pm
+function generateSlots() {
+  const slots = [];
+  for (let h = 5; h < 21; h++) {
+    const start = h.toString().padStart(2, '0') + ':00';
+    const end = (h + 1).toString().padStart(2, '0') + ':00';
+    slots.push({ start, end });
+  }
+  return slots;
+}
+
+function getAvailableSlots(courtId, date) {
+  const allSlots = generateSlots();
+  const booked = getCourtBookings(courtId, date);
+  return allSlots.filter(slot => !booked.some(b => isOverlap(slot.start, slot.end, b.start, b.end)));
+}
+
 let bookings = [];
 
 // Init date
@@ -598,8 +615,13 @@ function renderCourts() {
     const busy = courtStatus(c.id);
     const slots = getCourtBookings(c.id, todayStr);
     const slotHTML = slots.length
-      ? slots.map(b => `<span class="slot-item">${b.start}–${b.end}</span>`).join('')
+      ? slots.map(b => `<span class="slot-item booked">${b.start}–${b.end}</span>`).join('')
       : `<span class="no-slots">No bookings today</span>`;
+    // Show available slots
+    const availableSlots = getAvailableSlots(c.id, todayStr);
+    const availableHTML = availableSlots.length
+      ? availableSlots.map(s => `<span class="slot-item available">${s.start}–${s.end}</span>`).join('')
+      : `<span class="no-slots">No available slots</span>`;
     return `<div class="court-card">
       <div class="court-card-top">
         <div><div class="court-name">${c.name}</div><div class="court-sport">${c.sport}</div></div>
@@ -612,6 +634,8 @@ function renderCourts() {
       <div class="court-slots">
         <div class="slot-label">Today's Bookings</div>
         <div class="slot-list">${slotHTML}</div>
+        <div class="slot-label" style="margin-top:8px;color:var(--available);">Available Slots</div>
+        <div class="slot-list">${availableHTML}</div>
       </div>
       <button class="book-btn" onclick="prefill(${c.id})">Book This Court</button>
     </div>`;
@@ -623,12 +647,17 @@ function renderStats() {
   const todayStr = today.toISOString().split('T')[0];
   const busyCount = courts.filter(c => courtStatus(c.id)).length;
   document.getElementById('statTotal').textContent = courts.length;
-  document.getElementById('statAvail').textContent = courts.length - busyCount;
-  document.getElementById('statBooked').textContent = busyCount;
+  // Count available slots for all courts
+  let totalAvailableSlots = 0;
+  courts.forEach(c => {
+    totalAvailableSlots += getAvailableSlots(c.id, todayStr).length;
+  });
+  document.getElementById('statAvail').textContent = totalAvailableSlots;
+  document.getElementById('statBooked').textContent = bookings.filter(b => b.date === todayStr).length;
   document.getElementById('statToday').textContent = bookings.filter(b => b.date === todayStr).length;
   const revenue = bookings.filter(b => b.date === todayStr).reduce((s, b) => s + (b.cost || 0), 0);
   document.getElementById('statRevenue').textContent = `Rs. ${revenue}`;
-  document.getElementById('availCount').textContent = `${courts.length - busyCount} of ${courts.length} available`;
+  document.getElementById('availCount').textContent = `${totalAvailableSlots} available slots today`;
 }
 
 function renderTable() {
