@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — CourtBook</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --grad-start: #D6D0D5;
+            --grad-end: #EF4823;
+            --accent: #EF4823;
+            --accent-light: #fff0eb;
+            --available: #737373;
+            --available-bg: #ffffff;
+            --booked: #ef4444;
+            --booked-bg: #fee2e2;
+            --white: #ffffff;
+            --border: #e5e5e5;
+            --text: #1a1a1a;
+            --muted: #737373;
+            --surface: #fafafa;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+            --radius: 10px;
+            --font: 'DM Sans', sans-serif;
+            --mono: 'DM Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--surface);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-mark svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        .logo-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-text span {
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-date {
+            font-size: 0.8rem;
+            color: #a3a3a3;
+            font-family: var(--mono);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 16px;
+            background: linear-gradient(to bottom, var(--grad-start), var(--grad-end));
+            border-radius: 2px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+            font-family: var(--mono);
+        }
+
+        .highlight {
+            color: var(--accent);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 1rem;
+        }
+
+        label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input,
+        select {
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            font-size: 0.85rem;
+            font-family: var(--font);
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(239, 72, 35, 0.1);
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 7px;
+            background: linear-gradient(135deg, #EF4823, #c73a1a);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 10px 1.25rem;
+            text-align: left;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 11px 1.25rem;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+
+        .del-btn {
+            padding: 4px 10px;
+            border: 1px solid #fecaca;
+            border-radius: 5px;
+            background: var(--booked-bg);
+            color: var(--booked);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <header>
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-mark">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6l5 3-1 1.73-6-3.73V7z" />
+                    </svg>
+                </div>
+                <span class="logo-text">CourtBook <span>Admin</span></span>
+            </div>
+            <div class="header-actions">
+                <span class="header-date" id="headerDate"></span>
+                <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="loader">Checking authorization...</div>
+
+    <div class="container" id="adminContainer">
+        <!-- ANALYTICS -->
+        <div class="section-header">
+            <div class="section-title">Analytics Dashboard</div>
+        </div>
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Income</div>
+                <div class="stat-value highlight" id="totalIncome">Rs. 0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Bookings</div>
+                <div class="stat-value" id="totalBookings">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Most Used Court</div>
+                <div class="stat-value highlight" id="mostUsedCourt">-</div>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls-grid">
+            <!-- SYSTEM SETTINGS -->
+            <div class="form-card">
+                <div class="section-title" style="margin-bottom: 1rem;">Operating Hours</div>
+                <div class="alert" id="settingsAlert"></div>
+                <div class="form-group">
+                    <label>Open Time</label>
+                    <select id="openHour"></select>
+                </div>
+                <div class="form-group">
+                    <label>Close Time</label>
+                    <select id="closeHour"></select>
+                </div>
+                <button class="btn-primary" onclick="saveSettings()">Save Configuration</button>
+            </div>
+
+            <!-- COURT MANAGEMENT -->
+            <div class="form-card">
+                <div class="section-title" style="margin-bottom: 1rem;">Manage Courts</div>
+                <table style="margin-bottom: 1.5rem;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Sport</th>
+                            <th>Rate/hr</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courtsTable"></tbody>
+                </table>
+
+                <div style="border-top: 1px solid var(--border); margin-top: 1.5rem; padding-top: 1.5rem;">
+                    <div class="section-title" style="font-size: 0.9rem; margin-bottom: 1rem;">Add New Court</div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="newCourtName" placeholder="Court Name" style="flex:1;">
+                        <input type="text" id="newCourtSport" placeholder="Sport" style="flex:1;">
+                        <input type="number" id="newCourtRate" placeholder="Rate (Rs)" style="width:100px;">
+                    </div>
+                    <button class="btn-primary" onclick="addCourt()" style="width: auto; padding: 8px 16px;">Add
+                        Court</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SUPABASE INIT
+        const supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // AUTH CHECK
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session && session.user.email === 'admin@admin.com') {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                initAdmin();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+        }
+
+        // DATA STATE
+        let courts = [];
+        let bookings = [];
+        let settings = { openHour: 5, closeHour: 22 };
+
+        function loadData() {
+            const c = localStorage.getItem('cb_courts');
+            const b = localStorage.getItem('cb_bookings');
+            const s = localStorage.getItem('cb_settings');
+            if (c) courts = JSON.parse(c);
+            if (b) bookings = JSON.parse(b);
+            if (s) settings = JSON.parse(s);
+        }
+
+        function saveData() {
+            localStorage.setItem('cb_courts', JSON.stringify(courts));
+            localStorage.setItem('cb_settings', JSON.stringify(settings));
+            // Bookings are typically modified here only by clearing/syncing, but maybe admin can delete? 
+            // For now we just read them.
+        }
+
+        function initAdmin() {
+            loadData();
+            document.getElementById('headerDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            renderAnalytics();
+            populateTimeOptions();
+            document.getElementById('openHour').value = settings.openHour;
+            document.getElementById('closeHour').value = settings.closeHour;
+            renderCourtsTable();
+        }
+
+        function renderAnalytics() {
+            const totalIncome = bookings.reduce((sum, b) => sum + (b.cost || 0), 0);
+            document.getElementById('totalIncome').textContent = `Rs. ${totalIncome}`;
+            document.getElementById('totalBookings').textContent = bookings.length;
+
+            // Most used court
+            const counts = {};
+            bookings.forEach(b => {
+                counts[b.courtName] = (counts[b.courtName] || 0) + 1;
+            });
+            let maxCount = 0;
+            let mostEvt = 'None';
+            Object.keys(counts).forEach(k => {
+                if (counts[k] > maxCount) { maxCount = counts[k]; mostEvt = k; }
+            });
+            document.getElementById('mostUsedCourt').textContent = `${mostEvt} (${maxCount})`;
+        }
+
+        function populateTimeOptions() {
+            const o = document.getElementById('openHour');
+            const c = document.getElementById('closeHour');
+            for (let i = 0; i <= 23; i++) {
+                const t = `${i.toString().padStart(2, '0')}:00`;
+                o.add(new Option(t, i));
+                c.add(new Option(t, i));
+            }
+        }
+
+        function saveSettings() {
+            const oh = parseInt(document.getElementById('openHour').value);
+            const ch = parseInt(document.getElementById('closeHour').value);
+            if (oh >= ch) {
+                alert("Close Time must be after Open Time"); return;
+            }
+            settings = { openHour: oh, closeHour: ch };
+            saveData();
+            const alertEl = document.getElementById('settingsAlert');
+            alertEl.textContent = "Operating hours saved successfully!";
+            alertEl.className = "alert success";
+            alertEl.style.display = "block";
+            setTimeout(() => alertEl.style.display = "none", 3000);
+        }
+
+        function renderCourtsTable() {
+            const tbody = document.getElementById('courtsTable');
+            tbody.innerHTML = courts.map(c => `
+        <tr>
+          <td><strong>${c.name}</strong></td>
+          <td>${c.sport}</td>
+          <td>Rs. ${c.rate}</td>
+          <td><button class="del-btn" onclick="deleteCourt(${c.id})">Delete</button></td>
+        </tr>
+      `).join('');
+        }
+
+        function addCourt() {
+            const name = document.getElementById('newCourtName').value.trim();
+            const sport = document.getElementById('newCourtSport').value.trim();
+            const rate = parseInt(document.getElementById('newCourtRate').value);
+
+            if (!name || !sport || !rate) return alert("Please fill all court fields");
+
+            const id = courts.length ? Math.max(...courts.map(c => c.id)) + 1 : 1;
+            courts.push({ id, name, sport, rate });
+            saveData();
+
+            document.getElementById('newCourtName').value = '';
+            document.getElementById('newCourtSport').value = '';
+            document.getElementById('newCourtRate').value = '';
+            renderCourtsTable();
+        }
+
+        function deleteCourt(id) {
+            if (confirm("Are you sure you want to delete this court? Bookings for this court will still exist but it won't be available for new bookings.")) {
+                courts = courts.filter(c => c.id !== id);
+                saveData();
+                renderCourtsTable();
+            }
+        }
+    </script>
+</body>
+
+</html>

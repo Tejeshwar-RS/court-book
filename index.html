@@ -675,10 +675,143 @@
     .table-scroll {
       overflow-x: auto;
     }
+
+    /* AUTH OVERLAY */
+    #auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--surface);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-box {
+      background: var(--white);
+      padding: 2.5rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .auth-subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      text-align: left;
+    }
+
+    .auth-switch {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .auth-switch a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+
+    #authError {
+      color: var(--booked);
+      background: var(--booked-bg);
+      padding: 10px;
+      border-radius: 7px;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      display: none;
+      border: 1px solid #fecaca;
+    }
+
+    /* LOGOUT BTN */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .main-content {
+      display: none;
+      /* hidden until auth resolves */
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
+
+  <div id="auth-overlay">
+    <div class="auth-box">
+      <div class="logo-mark" style="margin: 0 auto 1rem; width: 48px; height: 48px; border-radius: 12px;">
+        <svg viewBox="0 0 24 24" style="width: 28px; height: 28px;">
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6l5 3-1 1.73-6-3.73V7z" />
+        </svg>
+      </div>
+      <div class="auth-title" id="authTitle">Sign In</div>
+      <div class="auth-subtitle" id="authSubtitle">Welcome back to CourtBook</div>
+
+      <div id="authError"></div>
+
+      <div class="auth-form" id="authForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="authEmail" placeholder="admin@admin.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" style="margin-top: 0.5rem;" id="authBtn" onclick="handleAuth()">Sign In</button>
+      </div>
+
+      <div class="auth-switch">
+        <span id="authSwitchText">Don't have an account?</span>
+        <a onclick="toggleAuthMode()" id="authSwitchLink">Sign Up</a>
+      </div>
+    </div>
+  </div>
 
   <header>
     <div class="header-inner">
@@ -691,122 +824,217 @@
         </div>
         <span class="logo-text">Court<span>Book</span></span>
       </div>
-      <span class="header-date" id="headerDate"></span>
+      <div class="header-actions">
+        <span class="header-date" id="headerDate" style="display: none;"></span>
+        <button class="logout-btn" onclick="handleLogout()" id="logoutBtn" style="display:none;">Sign Out</button>
+      </div>
     </div>
   </header>
 
-  <div class="container">
+  <div class="main-content" id="mainContent">
 
-    <!-- COURTS -->
-    <div class="section-header">
-      <div class="section-title">Courts Overview</div>
-      <span class="count-badge" id="availCount"></span>
-    </div>
-    <div class="courts-grid" id="courtsGrid"></div>
+    <div class="container">
 
-    <!-- FORM + STATS -->
-    <div class="form-section">
-      <div class="form-card">
-        <div class="section-title" style="margin-bottom:1.25rem">Book a Court</div>
-        <div id="alert" class="alert"><span class="alert-icon" id="alertIcon"></span><span id="alertMsg"></span></div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label for="playerName">Player Name</label>
-            <input type="text" id="playerName" placeholder="Enter your full name">
-          </div>
-          <div class="form-group full">
-            <label for="courtSelect">Select Court</label>
-            <div class="select-wrap">
-              <select id="courtSelect"></select>
+      <!-- COURTS -->
+      <div class="section-header">
+        <div class="section-title">Courts Overview</div>
+        <span class="count-badge" id="availCount"></span>
+      </div>
+      <div class="courts-grid" id="courtsGrid"></div>
+
+      <!-- FORM + STATS -->
+      <div class="form-section">
+        <div class="form-card">
+          <div class="section-title" style="margin-bottom:1.25rem">Book a Court</div>
+          <div id="alert" class="alert"><span class="alert-icon" id="alertIcon"></span><span id="alertMsg"></span></div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="playerName">Player Name</label>
+              <input type="text" id="playerName" placeholder="Enter your full name">
+            </div>
+            <div class="form-group full">
+              <label for="courtSelect">Select Court</label>
+              <div class="select-wrap">
+                <select id="courtSelect"></select>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label for="bookDate">Date</label>
+              <input type="date" id="bookDate">
+            </div>
+            <div class="form-group">
+              <label for="startTime">Start Time</label>
+              <div class="select-wrap">
+                <select id="startTime"></select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="endTime">End Time</label>
+              <div class="select-wrap">
+                <select id="endTime"></select>
+              </div>
             </div>
           </div>
-          <div class="form-group full">
-            <label for="bookDate">Date</label>
-            <input type="date" id="bookDate">
-          </div>
-          <div class="form-group">
-            <label for="startTime">Start Time</label>
-            <div class="select-wrap">
-              <select id="startTime"></select>
+          <div class="cost-preview" id="costPreview">
+            <div>
+              <div class="cost-preview-label">Estimated Cost</div>
+              <div class="cost-preview-sub" id="costBreakdown"></div>
             </div>
+            <div class="cost-preview-value" id="costValue"></div>
           </div>
-          <div class="form-group">
-            <label for="endTime">End Time</label>
-            <div class="select-wrap">
-              <select id="endTime"></select>
-            </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="addBooking()">Confirm Booking</button>
+            <button class="btn-secondary" onclick="resetForm()">Clear</button>
           </div>
         </div>
-        <div class="cost-preview" id="costPreview">
+
+        <div class="info-card">
           <div>
-            <div class="cost-preview-label">Estimated Cost</div>
-            <div class="cost-preview-sub" id="costBreakdown"></div>
+            <div class="info-card-title">Live Summary</div>
+            <div class="stat-row"><span class="stat-label">Total Courts</span><span class="stat-value orange"
+                id="statTotal"></span></div>
+            <div class="stat-row"><span class="stat-label">Available Now</span><span class="stat-value green"
+                id="statAvail"></span></div>
+            <div class="stat-row"><span class="stat-label">Booked</span><span class="stat-value red"
+                id="statBooked"></span></div>
+            <div class="stat-row"><span class="stat-label">Total Bookings Today</span><span class="stat-value orange"
+                id="statToday"></span></div>
+            <div class="stat-row"><span class="stat-label">Revenue Today (Est.)</span><span class="stat-value green"
+                id="statRevenue"></span></div>
           </div>
-          <div class="cost-preview-value" id="costValue"></div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" onclick="addBooking()">Confirm Booking</button>
-          <button class="btn-secondary" onclick="resetForm()">Clear</button>
+          <p class="booking-instructions">Select a court, date, and a valid time range to make a booking. Overlapping
+            bookings for the same court on the same date are not allowed. Click "Book" on any court card to auto-fill
+            the
+            selection.</p>
         </div>
       </div>
 
-      <div class="info-card">
-        <div>
-          <div class="info-card-title">Live Summary</div>
-          <div class="stat-row"><span class="stat-label">Total Courts</span><span class="stat-value orange"
-              id="statTotal"></span></div>
-          <div class="stat-row"><span class="stat-label">Available Now</span><span class="stat-value green"
-              id="statAvail"></span></div>
-          <div class="stat-row"><span class="stat-label">Booked</span><span class="stat-value red"
-              id="statBooked"></span></div>
-          <div class="stat-row"><span class="stat-label">Total Bookings Today</span><span class="stat-value orange"
-              id="statToday"></span></div>
-          <div class="stat-row"><span class="stat-label">Revenue Today (Est.)</span><span class="stat-value green"
-              id="statRevenue"></span></div>
-        </div>
-        <p class="booking-instructions">Select a court, date, and a valid time range to make a booking. Overlapping
-          bookings for the same court on the same date are not allowed. Click "Book" on any court card to auto-fill the
-          selection.</p>
+      <!-- BOOKINGS TABLE -->
+      <div class="section-header">
+        <div class="section-title">All Bookings</div>
+        <span class="count-badge" id="bookingCount"></span>
       </div>
-    </div>
-
-    <!-- BOOKINGS TABLE -->
-    <div class="section-header">
-      <div class="section-title">All Bookings</div>
-      <span class="count-badge" id="bookingCount"></span>
-    </div>
-    <div class="table-card">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Court</th>
-              <th>Sport</th>
-              <th>Player</th>
-              <th>Date</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Duration</th>
-              <th>Amount</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="bookingTable"></tbody>
-        </table>
-        <div class="empty-state" id="emptyState">
-          <div class="empty-state-icon">&#9632;</div>
-          <div>No bookings yet. Use the form above to get started.</div>
+      <div class="table-card">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Court</th>
+                <th>Sport</th>
+                <th>Player</th>
+                <th>Date</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Duration</th>
+                <th>Amount</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="bookingTable"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">&#9632;</div>
+            <div>No bookings yet. Use the form above to get started.</div>
+          </div>
         </div>
       </div>
+
     </div>
 
-  </div>
+  </div> <!-- End main-content -->
 
   <footer>CourtBook — Indoor Sports Scheduling System &nbsp;&bull;&nbsp; All bookings are session-based and reset on
     page reload.</footer>
 
   <script>
-    const courts = [
+    // SUPABASE INIT
+    // User needs to provide their own supabaseUrl and supabaseKey
+    const supabaseUrl = 'YOUR_SUPABASE_URL_HERE';
+    const supabaseKey = 'YOUR_SUPABASE_ANON_KEY_HERE';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    let isLoginMode = true;
+
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      document.getElementById('authTitle').textContent = isLoginMode ? 'Sign In' : 'Sign Up';
+      document.getElementById('authSubtitle').textContent = isLoginMode ? 'Welcome back to CourtBook' : 'Create a new account';
+      document.getElementById('authBtn').textContent = isLoginMode ? 'Sign In' : 'Sign Up';
+      document.getElementById('authSwitchText').textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
+      document.getElementById('authSwitchLink').textContent = isLoginMode ? "Sign Up" : "Sign In";
+      document.getElementById('authError').style.display = 'none';
+    }
+
+    function showAuthError(msg) {
+      const errEl = document.getElementById('authError');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    async function handleAuth() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+
+      if (!email || !password) {
+        return showAuthError('Please enter both email and password.');
+      }
+
+      document.getElementById('authBtn').textContent = 'Processing...';
+      document.getElementById('authBtn').disabled = true;
+
+      try {
+        if (isLoginMode) {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase.auth.signUp({ email, password });
+          if (error) throw error;
+          if (data.user && !data.session) {
+            showAuthError('Check your email to confirm registration.');
+            document.getElementById('authBtn').textContent = 'Sign Up';
+            document.getElementById('authBtn').disabled = false;
+            return;
+          }
+        }
+      } catch (err) {
+        showAuthError(err.message);
+        document.getElementById('authBtn').textContent = isLoginMode ? 'Sign In' : 'Sign Up';
+        document.getElementById('authBtn').disabled = false;
+      }
+    }
+
+    async function handleLogout() {
+      await supabase.auth.signOut();
+    }
+
+    // AUTH STATE LISTENER
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        // Logged in
+        if (session.user.email === 'admin@admin.com') {
+          // Redirect admin
+          window.location.href = 'admin.html';
+        } else {
+          // Show client UI
+          document.getElementById('auth-overlay').style.display = 'none';
+          document.getElementById('mainContent').style.display = 'block';
+          document.getElementById('logoutBtn').style.display = 'block';
+          document.getElementById('headerDate').style.display = 'block';
+          initApp();
+        }
+      } else {
+        // Logged out
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'none';
+        document.getElementById('headerDate').style.display = 'none';
+        document.getElementById('authBtn').textContent = 'Sign In';
+        document.getElementById('authBtn').disabled = false;
+      }
+    });
+
+    // STATE MANAGEMENT via localStorage
+    const defaultCourts = [
       { id: 1, name: 'Court A', sport: 'Badminton', rate: 200 },
       { id: 2, name: 'Court B', sport: 'Badminton', rate: 220 },
       { id: 3, name: 'Court C', sport: 'Basketball', rate: 450 },
@@ -815,10 +1043,58 @@
       { id: 6, name: 'Court F', sport: 'Volleyball', rate: 300 }
     ];
 
-    // Generate 1-hour slots from 5am to 9pm
+    let courts = [];
+    let bookings = [];
+    let settings = { openHour: 5, closeHour: 22 };
+
+    function saveData() {
+      localStorage.setItem('cb_courts', JSON.stringify(courts));
+      localStorage.setItem('cb_bookings', JSON.stringify(bookings));
+      localStorage.setItem('cb_settings', JSON.stringify(settings));
+    }
+
+    function loadData() {
+      const c = localStorage.getItem('cb_courts');
+      const b = localStorage.getItem('cb_bookings');
+      const s = localStorage.getItem('cb_settings');
+
+      courts = c ? JSON.parse(c) : defaultCourts;
+      bookings = b ? JSON.parse(b) : [];
+      settings = s ? JSON.parse(s) : { openHour: 5, closeHour: 22 };
+
+      // Save initially if empty
+      if (!c) saveData();
+    }
+
+    // Init date
+    const today = new Date();
+
+    function initApp() {
+      loadData();
+
+      document.getElementById('headerDate').textContent = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('bookDate').value = today.toISOString().split('T')[0];
+      document.getElementById('bookDate').min = today.toISOString().split('T')[0];
+
+      // Populate court select
+      const sel = document.getElementById('courtSelect');
+      sel.innerHTML = '';
+      courts.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = `${c.name} — ${c.sport} (Rs. ${c.rate}/hr)`;
+        sel.appendChild(o);
+      });
+
+      populateTimeDropdowns();
+      renderCourts();
+      renderTable();
+    }
+
+    // Generate 1-hour slots
     function generateSlots() {
       const slots = [];
-      for (let h = 5; h < 21; h++) {
+      for (let h = settings.openHour; h < settings.closeHour; h++) {
         const start = h.toString().padStart(2, '0') + ':00';
         const end = (h + 1).toString().padStart(2, '0') + ':00';
         slots.push({ start, end });
@@ -832,19 +1108,6 @@
       return allSlots.filter(slot => !booked.some(b => isOverlap(slot.start, slot.end, b.start, b.end)));
     }
 
-    let bookings = [];
-
-    // Init date
-    const today = new Date();
-    document.getElementById('headerDate').textContent = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    document.getElementById('bookDate').value = today.toISOString().split('T')[0];
-    document.getElementById('bookDate').min = today.toISOString().split('T')[0];
-
-    // Populate court select
-    const sel = document.getElementById('courtSelect');
-    courts.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.name} — ${c.sport} (Rs. ${c.rate}/hr)`; sel.appendChild(o); });
-
-    // Populate time dropdowns
     function populateTimeDropdowns() {
       const startSel = document.getElementById('startTime');
       const endSel = document.getElementById('endTime');
@@ -852,29 +1115,28 @@
       startSel.innerHTML = '<option value="" disabled selected>Start</option>';
       endSel.innerHTML = '<option value="" disabled selected>End</option>';
 
-      for (let h = 5; h <= 21; h++) {
+      for (let h = settings.openHour; h <= settings.closeHour; h++) {
         const time = h.toString().padStart(2, '0') + ':00';
         const opt = document.createElement('option');
         opt.value = time;
         opt.textContent = time;
-        startSel.appendChild(opt);
-      }
 
-      for (let h = 6; h <= 22; h++) {
-        const time = h.toString().padStart(2, '0') + ':00';
-        const opt = document.createElement('option');
-        opt.value = time;
-        opt.textContent = time;
-        endSel.appendChild(opt);
+        if (h < settings.closeHour) {
+          startSel.appendChild(opt.cloneNode(true));
+        }
+        if (h > settings.openHour) {
+          endSel.appendChild(opt);
+        }
       }
     }
-    populateTimeDropdowns();
 
     document.getElementById('startTime').addEventListener('change', (e) => {
       const [h, m] = e.target.value.split(':').map(Number);
       const endH = h + 1;
       const endStr = endH.toString().padStart(2, '0') + ':00';
-      document.getElementById('endTime').value = endStr;
+      if (endH <= settings.closeHour) {
+        document.getElementById('endTime').value = endStr;
+      }
       updateCostPreview();
     });
 
@@ -1023,6 +1285,7 @@
       const court = courts.find(c => c.id === courtId);
       const cost = calcCost(courtId, start, end);
       bookings.push({ courtId, courtName: court.name, sport: court.sport, player, date, start, end, cost });
+      saveData();
       showAlert('success', `Court ${court.name} booked for ${player} on ${date} from ${start} to ${end}. Total: Rs. ${cost}.`);
       resetForm();
       renderCourts();
@@ -1031,6 +1294,7 @@
 
     function deleteBooking(i) {
       bookings.splice(i, 1);
+      saveData();
       renderCourts();
       renderTable();
     }
@@ -1047,9 +1311,6 @@
       document.getElementById('bookDate').value = today.toISOString().split('T')[0];
       document.getElementById('costPreview').classList.remove('show');
     }
-
-    renderCourts();
-    renderTable();
   </script>
 </body>
 
